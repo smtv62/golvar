@@ -6,7 +6,9 @@ Akis:
   3) Her slug -> ``/channel/watch/<slug>`` -> ``loadstream.php`` iframe'ine gider;
      sayfadaki packer/eval blogu cozulup ``window.config.match.source`` (m3u8) alinir.
   4) Her m3u8 GET ile dogrulanir; calismayanlar listeye girmez.
-  5) Hic kanal yoksa DOSYA YAZILMAZ ve cikis 1 olur (eski liste korunur).
+  5) M3U'ya ``#EXTVLCOPT:http-referrer`` satiri yazilir (oyuncuya gore
+     referer gerekmez; yine de eklenir - riske girmemek icin).
+  6) Hic kanal yoksa DOSYA YAZILMAZ ve cikis 1 olur (eski liste korunur).
 """
 
 import base64
@@ -25,6 +27,10 @@ warnings.filterwarnings("ignore")
 HOME_URL = "https://golvarmac1.pro/"
 OUTPUT_FILENAME = "golvar.m3u"
 GROUP = "Golvar"
+
+# Segmentler su an referersiz de calisiyor; yine de referer eklenir
+# (kaynak gerekli hale gelirse oynaticida kirilmasin).
+STREAM_REFERER = HOME_URL
 
 HEADERS = {
     "User-Agent": (
@@ -200,7 +206,10 @@ def main():
         if url in seen:
             continue
         seen.add(url)
-        entries.append(f'#EXTINF:-1 group-title="{GROUP}", {title}\n{url}')
+        entries.append(
+            f'#EXTINF:-1 group-title="{GROUP}", {title}\n'
+            f"#EXTVLCOPT:http-referrer={STREAM_REFERER}\n{url}"
+        )
 
     if not entries:
         print("\n❌ HIC CALISAN YAYIN YOK - golvar.m3u DEGISTIRILMIYOR")
